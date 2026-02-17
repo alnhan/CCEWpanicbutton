@@ -1,2 +1,2 @@
 # CCEWpanicbutton
-Hardware and Software files for the OU Capstone CCEW Panic Button project.
+Hardware and Software files for the OU Capstone Wearable Alert Device project.
