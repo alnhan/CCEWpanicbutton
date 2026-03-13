@@ -6,19 +6,24 @@
 * @2026 University of Oklahoma
 */
 
-#define BUTTON 9
+#define BUTTON 17
 
-// I2C
+// I2C and GPS module settings
 #define I2C_SDA 11
 #define I2C_SCL 12
 
-// I2S
+// I2S and microphone settings
 // Note: Using standard mode for I2S
-#define I2S_BCLK
-#define I2S_WS
-#define I2S_DIN
-#define I2S_SEL
+#define I2S_WS 8
+#define I2S_SEL 7
+#define I2S_SCK 6
+#define I2S_DO 5
+#define MIC_LEFT_CH 0
+#define MIC_RIGHT_CH 1
+#define MIC_SAMPLING_RATE 44100
 
 // Bluetooth
-#define SERVER_UUID
-#define CHARACTERISTIC_UUID
+#define SERVICE_UUID "3098A182-02B0-4A35-889A-93B71E1748B9"
+#define CHARACTERISTIC_UUID "B536BCCE-2C24-4F7C-BF9F-1DE558316263"
+#define BLE_SERVER_NAME "Wearable_Alert_Device"
+#define MTU_SIZE 23
