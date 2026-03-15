@@ -7,12 +7,15 @@
 */
 
 #include "config.h"
-#include "GPSModule.h"
+#include "DFRobot_GNSSAndRTC.h"
 #include "GunshotDetection.h"
 #include "WirelessDataTransmission.h"
 
+DFRobot_GNSSAndRTC_I2C gpsModule(&Wire, MODULE_I2C_ADDRESS);
+DFRobot_GNSSAndRTC::sTimeData_t timestamp;
 volatile bool isButtonPressed;
 bool isDeviceConnected;
+bool isReadyToCollectData;
 int count;
 
 /*
@@ -24,12 +27,14 @@ class WADServerCallbacks : public BLEServerCallbacks {
   // A device has connected to WAD.
   // Set flag to true to indicate connection.
   void onConnect(BLEServer* pServer) {
+    Serial.println("A device has connected to the WAD.");
     isDeviceConnected = true;
   }
 
   // Device has disconnected from WAD.
   // Set flag to false to indicate disconnection and restart BLE advertising.
   void onDisconnect(BLEServer* pServer) {
+    Serial.println("A device has disconnected from the WAD.");
     isDeviceConnected = false;
     BLEDevice::startAdvertising();
   }
@@ -46,6 +51,10 @@ void IRAM_ATTR handleButtonInterrupt() {
   isButtonPressed = true;
 }
 
+// --------------------------------------------
+// Main Code
+// --------------------------------------------
+
 void setup() {
   Serial.begin(115200); // Baud rate set to 115200
   pinMode(BUTTON, INPUT_PULLUP);  // Button is active-low
@@ -55,6 +64,7 @@ void setup() {
 
   isButtonPressed = false;
   isDeviceConnected = false;
+  isReadyToCollectData = false;
   count = 0;
 
   // Bluetooth Initialization
@@ -81,17 +91,30 @@ void setup() {
   wadAdvertising = BLEDevice::getAdvertising();
   wadAdvertising->addServiceUUID(SERVICE_UUID);
   BLEDevice::startAdvertising();
+
+  // GPS Module Initialization
+  while (!gpsModule.begin()) {
+    Serial.println("Failed to initialize the GPS module.");
+    delay(1000);
+  }
+  Serial.println("Successfully initialized the GPS module.");
+  gpsModule.setHourSystem(gpsModule.e24hours);
+  gpsModule.setTime(INITIAL_YEAR, INITIAL_MONTH, INITIAL_DAY, INITIAL_HOUR, INITIAL_MINUTE, INITIAL_SECOND);
+
+  isReadyToCollectData = true;
 }
 
 void loop() {
-  if (isButtonPressed && isDeviceConnected) {
-    Serial.println("Button pressed.");
-    count++;
-    Serial.print("count: ");
-    Serial.println(count);
-    wadCharacteristic->setValue(String(count).c_str());
-    wadCharacteristic->notify();
-    isButtonPressed = false;
-    delay(300);
+  if (isReadyToCollectData) {
+    if (isButtonPressed && isDeviceConnected) {
+      Serial.println("Button pressed.");
+      count++;
+      Serial.print("count: ");
+      Serial.println(count);
+      wadCharacteristic->setValue(String(count).c_str());
+      wadCharacteristic->notify();
+      isButtonPressed = false;
+      delay(500);
+    }
   }
 }
